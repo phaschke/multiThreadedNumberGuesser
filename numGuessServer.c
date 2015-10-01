@@ -1,17 +1,25 @@
-#include "server.h"
-#include "pthread.h"
+#define _REENTRANT
+#include  "server.h"
 
 /*
  *Peter Haschke
  *Brandon Weigel
  * main()
  */
+
+//pthread_mutex_t mutex_cache = PTHREAD_MUTEX_INITIALIZER;
+//pthread_mutex_t mutex_client_socket = PTHREAD_MUTEX_INITIALIZER;
+//pthread_mutex_init(mutex_client_socket);
+
 int main(int argc, char** argv) {
     int server_socket;                 // descriptor of server socket
     struct sockaddr_in server_address; // for naming the server's listening socket
     int client_socket;
 
-    pthread_t threads[10];
+    pthread_t threads;
+    //Holds number result of the thread.
+    int result;
+    void *thread_result;
 
     // create unnamed network socket for server to listen on
     if ((server_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -39,12 +47,20 @@ int main(int argc, char** argv) {
     // server loop
     while (TRUE) {
         
+	//pthread_mutex_lock(mutex_client_socket);
         // accept connection to client
         if ((client_socket = accept(server_socket, NULL, NULL)) == -1) {
             perror("Error accepting client");
         } else {
-	    threads            
-            handle_client(client_socket);
+	   // int *test = &client_socket;
+	    result = pthread_create(&threads, NULL, handle_client, (void *) &client_socket);
+ 	   
+	   //If fails to create thread
+	   if(result == 0){
+		perror("Thread creation failed");
+		exit(EXIT_FAILURE);
+	   }
+          //handle_client(client_socket);
         }
     }
 }
@@ -53,7 +69,11 @@ int main(int argc, char** argv) {
 /*
  * handle client
  */
-void handle_client(int client_socket) {
+void *handle_client(void *socket) {
+    //Changing client_socket from void point back to int.
+    int client_socket = *(int*)socket;
+
+    //pthread_mutex_unlock(mutex_client_socket);
     char input;
     int keep_going = TRUE;
     int fence = 1024/2;
