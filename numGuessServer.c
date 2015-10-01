@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
 	    result = pthread_create(&threads, NULL, handle_client, (void *) &client_socket);
  	   
 	   //If fails to create thread
-	   if(result == 0){
+	   if(result != 0){
 		perror("Thread creation failed");
 		exit(EXIT_FAILURE);
 	   }
